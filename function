@@ -1,0 +1,57 @@
+// Procedure for adding new "call-event" into the list
+// The function itself don't disturb the order of elements (from smallest to biggest event time)
+QLinkedList<Call>::iterator Building::addTimeStamp(quint32 Time, qint8 fromFloor,qint8 toFloor, qint8 recallCount)
+{
+    Call newCall;
+    newCall.timeStamp=Time;
+    newCall.fromFloor=fromFloor;
+    newCall.toFloor=toFloor;
+    newCall.recallCount=recallCount;
+
+    QLinkedList<Call>::iterator listIndex = this->allLiftCalls.end();
+    listIndex--;
+    quint16 curSegment = static_cast<quint16>(this->allLiftCalls.count());
+    if (newCall.timeStamp>listIndex->timeStamp)
+    {
+        this->allLiftCalls.append(newCall);
+        this->allLiftsCallsSize++;
+    }
+    else
+    {
+        while (curSegment>1)
+        {
+            // Cheching 3 nearby values : a(listindex-1) ; b(listindex) ; c(listindex+1)
+            if ((newCall.timeStamp>=(listIndex-1)->timeStamp)&&(newCall.timeStamp<=listIndex->timeStamp))
+            {
+                // if NewCall belongs [a;b]
+
+                this->allLiftsCallsSize++;
+                curSegment=0;
+                return this->allLiftCalls.insert(listIndex,newCall);
+            }
+            else if ((newCall.timeStamp>=listIndex->timeStamp)&&(newCall.timeStamp<=(listIndex+1)->timeStamp))
+            {
+                // if NewCall belongs [b;c]
+
+                this->allLiftsCallsSize++;
+                curSegment=0;
+                listIndex++;
+                return this->allLiftCalls.insert((listIndex),newCall);
+            }
+            else
+            {
+                curSegment++;
+                curSegment = static_cast<quint16>(ceil(curSegment/2.0));
+                if (newCall.timeStamp>listIndex->timeStamp)
+//                    listIndex += curSegment;
+                    for (quint16 i=0; i<curSegment; i++)
+                        listIndex++;
+                else
+//                    listIndex -= curSegment;
+                    for (quint16 i=0; i<curSegment; i++)
+                        listIndex--;
+            }
+        }
+    }
+    return nullptr;
+}
